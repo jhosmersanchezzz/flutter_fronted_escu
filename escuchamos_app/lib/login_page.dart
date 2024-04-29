@@ -14,6 +14,7 @@ class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
@@ -30,10 +31,15 @@ class _LoginPageState extends State<LoginPage> {
   Color primaryColor = Colors.blue;
 
   bool _obscureText = true; // Añadido para manejar la visibilidad de la contraseña
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(Duration.zero, () {}); // Inicializar el Timer con una duración cero y una función vacía
+  }
 
   @override
   void dispose() {
-    _timer.cancel(); 
+    _timer.cancel(); // Cancelar el timer al salir de la página
     super.dispose();
   }
 
@@ -77,16 +83,18 @@ class _LoginPageState extends State<LoginPage> {
       _userId = jsonResponse['usuario']; // Captura el ID del usuario
       
       // Almacena el token y el ID del usuario en AuthProvider
+      // ignore: use_build_context_synchronously
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       authProvider.setToken(_token);
       authProvider.setUserId(_userId);
 
       Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => WelcomePage(), 
-        ),
-      );
+      // ignore: use_build_context_synchronously
+      context,
+      MaterialPageRoute(
+        builder: (context) => const WelcomePage(), 
+      ),
+    );
     } else if (response.statusCode == 400) {
       final jsonResponse = json.decode(utf8.decode(response.bodyBytes));
       final detail = jsonResponse['detail'];
@@ -188,10 +196,10 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 10),
             TextButton(
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => RegisterPage(),
+                    pageBuilder: (context, animation, secondaryAnimation) => const RegisterPage(),
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       var begin = const Offset(1.0, 0.0);
                       var end = Offset.zero;

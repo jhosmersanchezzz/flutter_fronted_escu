@@ -30,6 +30,7 @@ class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _RegisterPageState createState() => _RegisterPageState();
 }
 
@@ -157,6 +158,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final message = responseData['message'];
 
       showDialog(
+        // ignore: use_build_context_synchronously
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -169,7 +171,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
-                          LoginPage(), // Navega a la página de inicio de sesión
+                          const LoginPage(), // Navega a la página de inicio de sesión
                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
                         var begin = const Offset(-1.0, 0.0); // Cambio: Se cambia el inicio de la transición a la izquierda (-1.0)
                         var end = Offset.zero;
@@ -194,6 +196,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final responseData = json.decode(utf8.decode(response.bodyBytes));
       final errorMessage = responseData.values.join('\n');
       showDialog(
+        // ignore: use_build_context_synchronously
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
@@ -246,10 +249,12 @@ class _RegisterPageState extends State<RegisterPage> {
     _errorMessageTimer?.cancel();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Container(
+      color: Colors.white, // Establecer el color de fondo en blanco
+      child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: ListView(
           children: [
@@ -429,10 +434,10 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 20),
             TextButton( // Cambio: Se agrega el TextButton al final del formulario
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => LoginPage(), // Cambio: Se cambia la clase a la que redirige
+                    pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(), // Cambio: Se cambia la clase a la que redirige
                     transitionsBuilder: (context, animation, secondaryAnimation, child) {
                       var begin = const Offset(-1.0, 0.0); // Cambio: Se cambia el inicio de la transición a la izquierda (-1.0)
                       var end = Offset.zero;
@@ -457,6 +462,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
