@@ -4,33 +4,12 @@ import 'dart:convert';
 import 'dart:async';
 import 'constants.dart';
 import 'login_page.dart'; // Importa RegisterPage si está en otro archivo
-
-
-class Country {
-  final int id;
-  final String abbreviation;
-  final String dialingCode;
-
-  Country({
-    required this.id,
-    required this.abbreviation,
-    required this.dialingCode,
-  });
-
-  factory Country.fromJson(Map<String, dynamic> json) {
-    return Country(
-      id: json['id'],
-      abbreviation: json['name'],
-      dialingCode: json['dialing_code'],
-    );
-  }
-}
+import 'models/country_model.dart'; // Importa el modelo de país
 
 class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+  const RegisterPage({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _RegisterPageState createState() => _RegisterPageState();
 }
 
@@ -43,7 +22,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController lastNameController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
-
 
   bool _obscureText = true;
   bool _obscureConfirmText = true;
@@ -170,8 +148,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   Navigator.push(
                     context,
                     PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          const LoginPage(), // Navega a la página de inicio de sesión
+                      pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(), // Navega a la página de inicio de sesión
                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
                         var begin = const Offset(-1.0, 0.0); // Cambio: Se cambia el inicio de la transición a la izquierda (-1.0)
                         var end = Offset.zero;
@@ -249,220 +226,222 @@ class _RegisterPageState extends State<RegisterPage> {
     _errorMessageTimer?.cancel();
   }
 
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    body: Container(
-      color: Colors.white, // Establecer el color de fondo en blanco
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: ListView(
-          children: [
-            TextFormField(
-              controller: usernameController,
-              decoration: InputDecoration(
-                labelText: 'Nombre de usuario',
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
-                ),
-                errorText: _usernameError,
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: passwordController,
-              decoration: InputDecoration(
-                labelText: 'Contraseña',
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscureText ? Icons.visibility_off : Icons.visibility),
-                  onPressed: () {
-                    setState(() {
-                      _obscureText = !_obscureText;
-                    });
-                  },
-                ),
-                errorText: _passwordError,
-              ),
-              obscureText: _obscureText,
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: confirmPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Confirmar Contraseña',
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
-                ),
-                errorText: _confirmPasswordError,
-              ),
-              obscureText: _obscureConfirmText,
-              onChanged: (value) {
-                setState(() {
-                  _obscureConfirmText = !_obscureConfirmText;
-                });
-              },
-            ),
-            const SizedBox(height: 10),
-            DropdownButtonFormField<Country>(
-              value: _selectedCountry,
-              onChanged: (Country? newValue) {
-                setState(() {
-                  _selectedCountry = newValue;
-                  // Actualiza el campo de número de teléfono al seleccionar un país
-                  phoneNumberController.text = _selectedCountry?.dialingCode ?? '';
-                });
-              },
-              decoration: InputDecoration(
-                labelText: 'País',
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
-                ),
-                errorText: _countryError,
-              ),
-              items: _countries.map<DropdownMenuItem<Country>>((Country country) {
-                return DropdownMenuItem<Country>(
-                  value: country,
-                  child: Text(
-                    '${country.abbreviation} (${country.dialingCode})',
-                    style: const TextStyle(fontSize: 11.0), // Tamaño de letra más pequeño
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        color: Colors.white, // Establecer el color de fondo en blanco
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: usernameController,
+                decoration: InputDecoration(
+                  labelText: 'Nombre de usuario',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'Correo electrónico',
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+                  errorText: _usernameError,
                 ),
-                errorText: _emailError,
               ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'Nombres',
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: passwordController,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _obscureText = !_obscureText;
+                      });
+                    },
+                  ),
+                  errorText: _passwordError,
                 ),
-                errorText: _nameError,
+                obscureText: _obscureText,
               ),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: lastNameController,
-              decoration: InputDecoration(
-                labelText: 'Apellidos',
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: confirmPasswordController,
+                decoration: InputDecoration(
+                  labelText: 'Confirmar Contraseña',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Constants.colorBlueapp),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(_obscureConfirmText ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmText = !_obscureConfirmText;
+                      });
+                    },
+                  ),
+                  errorText: _confirmPasswordError,
                 ),
-                errorText: _lastNameError,
+                obscureText: _obscureConfirmText,
               ),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: addressController,
-              decoration: InputDecoration(
-                labelText: 'Dirección',
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
-                ),
-                errorText: _addressError,
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextFormField(
-              controller: phoneNumberController,
-              decoration: InputDecoration(
-                labelText: 'Número de teléfono',
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
-                ),
-                errorText: _phoneNumberError,
-              ),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 20),
-            Container(
-              decoration: BoxDecoration(
-                gradient: Constants.gradientBlue,
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: ElevatedButton(
-                onPressed: () {
-                  _registerUser(context);
+              const SizedBox(height: 10),
+              DropdownButtonFormField<Country>(
+                value: _selectedCountry,
+                onChanged: (Country? newValue) {
+                  setState(() {
+                    _selectedCountry = newValue;
+                    // Actualiza el campo de número de teléfono al seleccionar un país
+                    phoneNumberController.text = _selectedCountry?.dialingCode ?? '';
+                  });
                 },
-                style: ButtonStyle(
-                  backgroundColor: WidgetStateProperty.all<Color>(Colors.transparent), // Hace que el botón sea transparente
-                  shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                decoration: InputDecoration(
+                  labelText: 'País',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+                  ),
+                  errorText: _countryError,
+                ),
+                items: _countries.map<DropdownMenuItem<Country>>((Country country) {
+                  return DropdownMenuItem<Country>(
+                    value: country,
+                    child: Text(
+                      '${country.name}',
+                      style: const TextStyle(fontSize: 14.0), // Tamaño de letra más pequeño
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: 'Correo electrónico',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+                  ),
+                  errorText: _emailError,
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: nameController,
+                decoration: InputDecoration(
+                  labelText: 'Nombres',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+                  ),
+                  errorText: _nameError,
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: lastNameController,
+                decoration: InputDecoration(
+                  labelText: 'Apellidos',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+                  ),
+                  errorText: _lastNameError,
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: addressController,
+                decoration: InputDecoration(
+                  labelText: 'Dirección',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+                  ),
+                  errorText: _addressError,
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextFormField(
+                controller: phoneNumberController,
+                decoration: InputDecoration(
+                  labelText: 'Número de teléfono',
+                  border: const OutlineInputBorder(),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
+                  ),
+                  errorText: _phoneNumberError,
+                ),
+                keyboardType: TextInputType.phone,
+              ),
+              const SizedBox(height: 20),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: Constants.gradientBlue,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: ElevatedButton(
+                  onPressed: () {
+                    _registerUser(context);
+                  },
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent), // Hace que el botón sea transparente
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                     ),
                   ),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: const Center(
-                    child: Text(
-                      'Registrarse',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16.0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: const Center(
+                      child: Text(
+                        'Registrarse',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-
-            const SizedBox(height: 20),
-            TextButton( // Cambio: Se agrega el TextButton al final del formulario
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(), // Cambio: Se cambia la clase a la que redirige
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      var begin = const Offset(-1.0, 0.0); // Cambio: Se cambia el inicio de la transición a la izquierda (-1.0)
-                      var end = Offset.zero;
-                      var curve = Curves.easeInOut;
-                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                      var offsetAnimation = animation.drive(tween);
-                      return SlideTransition(
-                        position: offsetAnimation,
-                        child: child,
-                      );
-                    },
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(), // Cambio: Se cambia la clase a la que redirige
+                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                        var begin = const Offset(-1.0, 0.0); // Cambio: Se cambia el inicio de la transición a la izquierda (-1.0)
+                        var end = Offset.zero;
+                        var curve = Curves.easeInOut;
+                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                        var offsetAnimation = animation.drive(tween);
+                        return SlideTransition(
+                          position: offsetAnimation,
+                          child: child,
+                        );
+                      },
+                    ),
+                  );
+                },
+                child: const Text(
+                  '¿Ya tienes una cuenta? Inicia sesión',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: Constants.colorBlueapp,
                   ),
-                );
-              },
-              child: const Text(
-                '¿Ya tienes una cuenta? Inicia sesión',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: Constants.colorBlueapp,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
       ),
     );
   }

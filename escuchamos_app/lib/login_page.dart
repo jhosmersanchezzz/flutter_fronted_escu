@@ -1,45 +1,38 @@
+import 'package:escuchamos_app/models/login_response.dart'; // Importa el modelo de respuesta de login
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'package:provider/provider.dart'; // Importa Provider
+import 'package:provider/provider.dart'; // Importa Provider para el manejo del estado
 import 'welcome_page.dart'; // Importa WelcomePage si está en otro archivo
 import 'register_page.dart'; // Importa RegisterPage si está en otro archivo
-import 'auth_provider.dart'; // Importa AuthProvider
+import 'auth_provider.dart'; // Importa AuthProvider para el manejo de la autenticación
 import 'constants.dart';
 
-
-
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
-  String _errorMessage = '';
-  late Timer _timer;
-  bool _isLoggingIn = false;
-  late String _token; // Variable para almacenar el token
-  late int _userId; // Variable para almacenar el ID del usuario
+  String _errorMessage = ''; // Mensaje de error para mostrar en caso de falla en el inicio de sesión
+  late Timer _timer; // Temporizador para mostrar el mensaje de error temporalmente
+  bool _isLoggingIn = false; // Bandera para controlar si se está realizando el inicio de sesión
+  bool _obscureText = true; // Controla la visibilidad de la contraseña en el campo de texto
 
-  Color primaryColor = Colors.blue;
-
-  bool _obscureText = true; // Añadido para manejar la visibilidad de la contraseña
   @override
   void initState() {
     super.initState();
-    _timer = Timer(Duration.zero, () {}); // Inicializar el Timer con una duración cero y una función vacía
+    _timer = Timer(Duration.zero, () {});
   }
 
   @override
   void dispose() {
-    _timer.cancel(); // Cancelar el timer al salir de la página
+    _timer.cancel();
     super.dispose();
   }
 
@@ -50,14 +43,15 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _isLoggingIn = true;
     });
-    
+
+    // Validar que los campos de nombre de usuario y contraseña no estén vacíos
     if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
       setState(() {
         _errorMessage = 'Por favor complete todos los campos';
       });
       _timer = Timer(const Duration(seconds: 4), () {
         setState(() {
-          _errorMessage = ''; 
+          _errorMessage = '';
         });
       });
       setState(() {
@@ -66,8 +60,9 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    // Realizar la solicitud de inicio de sesión al servidor
     final response = await http.post(
-      Uri.parse('${Constants.baseUrl}/login/'), // Utiliza la variable BASE_URL aquí
+      Uri.parse('${Constants.baseUrl}/login/'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -77,32 +72,29 @@ class _LoginPageState extends State<LoginPage> {
       }),
     );
 
+    // Manejar la respuesta del servidor
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(utf8.decode(response.bodyBytes));
-      _token = jsonResponse['token']; // Captura el token
-      _userId = jsonResponse['usuario']; // Captura el ID del usuario
-      
-      // Almacena el token y el ID del usuario en AuthProvider
-      // ignore: use_build_context_synchronously
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      authProvider.setToken(_token);
-      authProvider.setUserId(_userId);
-
+      final loginResponse = LoginResponse.fromJson(jsonResponse); // Mapear la respuesta del servidor al modelo LoginResponse
+      final authProvider = Provider.of<AuthProvider>(context, listen: false); // Obtener el proveedor de autenticación
+      authProvider.setToken(loginResponse.token); // Establecer el token de autenticación
+      authProvider.setUserId(loginResponse.userId); // Establecer el ID de usuario
+      // Redirigir a la página de bienvenida una vez que se haya completado el inicio de sesión correctamente
       Navigator.pushReplacement(
-      // ignore: use_build_context_synchronously
-      context,
-      MaterialPageRoute(
-        builder: (context) => const WelcomePage(), 
-      ),
-    );
+        context,
+        MaterialPageRoute(
+          builder: (context) => const WelcomePage(),
+        ),
+      );
     } else if (response.statusCode == 400) {
+      // En caso de error de inicio de sesión, mostrar el mensaje de error proporcionado por el servidor
       final jsonResponse = json.decode(utf8.decode(response.bodyBytes));
       final detail = jsonResponse['detail'];
       setState(() {
         _errorMessage = detail != null ? detail.toString() : 'Usuario o contraseña incorrectos';
         _timer = Timer(const Duration(seconds: 4), () {
           setState(() {
-            _errorMessage = ''; 
+            _errorMessage = '';
           });
         });
       });
@@ -123,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Image.asset(
-              'assets/logo.png', // Asegúrate de tener la imagen en la carpeta de assets
+              'assets/logo.png',
               height: 130,
             ),
             const SizedBox(height: 20.0),
@@ -142,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 16.0),
             TextField(
               controller: _passwordController,
-              obscureText: _obscureText, // Cambiado para manejar la visibilidad de la contraseña
+              obscureText: _obscureText,
               decoration: InputDecoration(
                 hintText: 'Contraseña',
                 hintStyle: const TextStyle(color: Colors.grey),
@@ -151,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
                   borderSide: BorderSide(color: Constants.colorBlueapp),
                 ),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off), // Ícono del ojo para visualizar la contraseña
+                  icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
                   onPressed: () {
                     setState(() {
                       _obscureText = !_obscureText;
@@ -162,7 +154,6 @@ class _LoginPageState extends State<LoginPage> {
               style: const TextStyle(fontSize: 16.0),
             ),
             const SizedBox(height: 24.0),
-
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8.0),
@@ -175,7 +166,6 @@ class _LoginPageState extends State<LoginPage> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  // Define el color de fondo del botón como transparente para que el degradado sea visible
                   backgroundColor: Colors.transparent,
                 ),
                 child: const Text(
@@ -187,7 +177,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-
             const SizedBox(height: 10),
             Text(
               _errorMessage,
