@@ -247,6 +247,16 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white, // Establece el color de fondo de la AppBar como blanco
+        title: Center(
+          child: SizedBox(
+            height: kToolbarHeight,
+            child: Image.asset('assets/logo_banner.png'),
+          ),
+        ),
+      ),
+
       body: Container(
         color: Colors.white, // Establecer el color de fondo en blanco
         child: Padding(
