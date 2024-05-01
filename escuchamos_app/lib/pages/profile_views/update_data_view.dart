@@ -33,13 +33,15 @@ class _UpdateDataViewState extends State<UpdateDataView> {
   }
 
   Future<void> _fetchUserData() async {
+  try {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final response = await http.get(
       Uri.parse('${Constants.baseUrl}/user/${authProvider.userId}'),
       headers: {'Authorization': 'Token ${authProvider.token}'},
     );
     if (response.statusCode == 200) {
-      final Map<String, dynamic> userData = json.decode(response.body);
+      final String responseBody = utf8.decode(response.bodyBytes);
+      final Map<String, dynamic> userData = json.decode(responseBody);
       _usernameController.text = userData['username'];
       _emailController.text = userData['email'];
       _addressController.text = userData['address'];
@@ -47,7 +49,10 @@ class _UpdateDataViewState extends State<UpdateDataView> {
     } else {
       throw Exception('Failed to load user data');
     }
+  } catch (error) {
+    print('Error fetching user data: $error');
   }
+}
 
   Future<void> _updateUserData() async {
     if (_formKey.currentState!.validate()) {

@@ -8,10 +8,8 @@ import 'package:escuchamos_app/pages/profile_views/change_password_view.dart';
 import 'package:escuchamos_app/login_page.dart';
 import 'package:escuchamos_app/constants.dart';
 
-
-
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  const ProfilePage({Key? key});
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -34,7 +32,8 @@ class _ProfilePageState extends State<ProfilePage> {
         headers: {'Authorization': 'Token ${authProvider.token}'},
       );
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+        final String responseBody = utf8.decode(response.bodyBytes);
+        final Map<String, dynamic> data = json.decode(responseBody);
         setState(() {
           userData = data;
         });
@@ -54,7 +53,8 @@ class _ProfilePageState extends State<ProfilePage> {
         headers: {'Authorization': 'Token ${authProvider.token}'},
       );
       if (response.statusCode == 200) {
-        // Navigate to login page after successful logout
+        // Eliminar todas las rutas anteriores y reemplazar con la página de inicio de sesión
+        Navigator.of(context).popUntil((route) => route.isFirst);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => LoginPage()),
@@ -70,147 +70,151 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 5),
-                _buildUserInfo(
-                  username: userData['username'] ?? '',
-                  email: userData['email'] ?? '',
-                  name: userData['name'] ?? '',
-                  lastName: userData['last_name'] ?? '',
-                  address: userData['address'] ?? '',
-                  phoneNumber: userData['phone_number'] ?? '',
-                ),
-                const SizedBox(height: 20),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(20.0),
-                ),
-              ),
-              child: PopupMenuButton(
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.update,
-                        color: Constants.colorBlueapp,
-                      ),
-                      title: const Text(
-                        'Actualizar Datos',
-                        style: TextStyle(
-                          color: Constants.colorBlueapp,
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => UpdateDataView(),
-                          ),
-                        );
-                      },
-                    ),
+      body: RefreshIndicator(
+        onRefresh: _fetchUserData,
+        child: Stack(
+          children: [
+            SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 5),
+                  _buildUserInfo(
+                    username: userData['username'] ?? '',
+                    email: userData['email'] ?? '',
+                    name: userData['name'] ?? '',
+                    lastName: userData['last_name'] ?? '',
+                    address: userData['address'] ?? '',
+                    phoneNumber: userData['phone_number'] ?? '',
                   ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.lock,
-                        color: Constants.colorBlueapp,
-                      ),
-                      title: const Text(
-                        'Cambiar Contraseña',
-                        style: TextStyle(
-                          color: Constants.colorBlueapp,
-                        ),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChangePasswordView(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  PopupMenuItem(
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.logout,
-                        color: Constants.colorBlueapp,
-                      ),
-                      title: const Text(
-                        'Cerrar sesión',
-                        style: TextStyle(
-                          color: Constants.colorBlueapp,
-                        ),
-                      ),
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text(
-                              'Cerrar sesión',
-                              style: TextStyle(
-                                color: Constants.colorBlueapp,
-                              ),
-                            ),
-                            content: const Text(
-                              '¿Estás seguro de que quieres cerrar sesión?',
-                              style: TextStyle(
-                                color: Constants.colorBlueapp,
-                              ),
-                            ),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: const Text(
-                                  'Cancelar',
-                                  style: TextStyle(
-                                    color: Constants.colorBlueapp,
-                                  ),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  _logout();
-                                },
-                                child: const Text(
-                                  'Cerrar sesión',
-                                  style: TextStyle(
-                                    color: Constants.colorBlueapp,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                  const SizedBox(height: 20),
                 ],
-                icon: const Icon(
-                  Icons.more_vert,
-                  color: Constants.colorBlueapp,
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(20.0),
+                  ),
+                ),
+                child: PopupMenuButton(
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.update,
+                          color: Constants.colorBlueapp,
+                        ),
+                        title: const Text(
+                          'Actualizar Datos',
+                          style: TextStyle(
+                            color: Constants.colorBlueapp,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => UpdateDataView(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    PopupMenuItem(
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.lock,
+                          color: Constants.colorBlueapp,
+                        ),
+                        title: const Text(
+                          'Cambiar Contraseña',
+                          style: TextStyle(
+                            color: Constants.colorBlueapp,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ChangePasswordView(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    PopupMenuItem(
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.logout,
+                          color: Constants.colorBlueapp,
+                        ),
+                        title: const Text(
+                          'Cerrar sesión',
+                          style: TextStyle(
+                            color: Constants.colorBlueapp,
+                          ),
+                        ),
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text(
+                                'Cerrar sesión',
+                                style: TextStyle(
+                                  color: Constants.colorBlueapp,
+                                ),
+                              ),
+                              content: const Text(
+                                '¿Estás seguro de que quieres cerrar sesión?',
+                                style: TextStyle(
+                                  color: Constants.colorBlueapp,
+                                ),
+                              ),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text(
+                                    'Cancelar',
+                                    style: TextStyle(
+                                      color: Constants.colorBlueapp,
+                                    ),
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    _logout();
+                                  },
+                                  child: const Text(
+                                    'Cerrar sesión',
+                                    style: TextStyle(
+                                      color: Constants.colorBlueapp,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                  icon: const Icon(
+                    Icons.more_vert,
+                    color: Constants.colorBlueapp,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

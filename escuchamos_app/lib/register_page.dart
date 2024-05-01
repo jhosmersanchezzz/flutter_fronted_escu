@@ -40,6 +40,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   List<Country> _countries = [];
   Country? _selectedCountry;
+  bool _isRegistering = false; // Bandera para controlar si se está realizando el registro
 
   @override
   void initState() {
@@ -52,7 +53,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes))['countries']; // Corrección aquí
+      final List<dynamic> data = json.decode(utf8.decode(response.bodyBytes))['countries'];
       setState(() {
         _countries = data.map((item) => Country.fromJson(item)).toList();
       });
@@ -68,6 +69,13 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _registerUser(BuildContext context) async {
+    if (_isRegistering) {
+      return;
+    }
+    setState(() {
+      _isRegistering = true;
+    });
+
     setState(() {
       _usernameError = _validateField(usernameController.text);
       _passwordError = _validateField(passwordController.text);
@@ -89,6 +97,9 @@ class _RegisterPageState extends State<RegisterPage> {
         _addressError != null ||
         _phoneNumberError != null ||
         _countryError != null) {
+      setState(() {
+        _isRegistering = false;
+      });
       return;
     }
 
@@ -110,6 +121,9 @@ class _RegisterPageState extends State<RegisterPage> {
           );
         },
       );
+      setState(() {
+        _isRegistering = false;
+      });
       return;
     }
 
@@ -127,7 +141,7 @@ class _RegisterPageState extends State<RegisterPage> {
         'last_name': lastNameController.text,
         'address': addressController.text,
         'phone_number': phoneNumberController.text,
-        'country_id': _selectedCountry?.id, // Agregar el id del país seleccionado
+        'country_id': _selectedCountry?.id,
       }),
     );
 
@@ -148,9 +162,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   Navigator.push(
                     context,
                     PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(), // Navega a la página de inicio de sesión
+                      pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(),
                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        var begin = const Offset(-1.0, 0.0); // Cambio: Se cambia el inicio de la transición a la izquierda (-1.0)
+                        var begin = const Offset(-1.0, 0.0);
                         var end = Offset.zero;
                         var curve = Curves.easeInOut;
                         var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
@@ -190,6 +204,10 @@ class _RegisterPageState extends State<RegisterPage> {
         },
       );
     }
+
+    setState(() {
+      _isRegistering = false;
+    });
   }
 
   String? _validateField(String value) {
@@ -256,7 +274,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderSide: BorderSide(color: Constants.colorBlueapp), // Cambio: Agregado el color azul al borde enfocado
                   ),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off, color: Constants.colorBlueapp),
                     onPressed: () {
                       setState(() {
                         _obscureText = !_obscureText;
@@ -277,7 +295,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     borderSide: BorderSide(color: Constants.colorBlueapp),
                   ),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscureConfirmText ? Icons.visibility : Icons.visibility_off),
+                    icon: Icon(_obscureConfirmText ? Icons.visibility : Icons.visibility_off, color: Constants.colorBlueapp),
                     onPressed: () {
                       setState(() {
                         _obscureConfirmText = !_obscureConfirmText;
@@ -311,7 +329,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     value: country,
                     child: Text(
                       '${country.name}',
-                      style: const TextStyle(fontSize: 14.0), // Tamaño de letra más pequeño
+                      style: const TextStyle(fontSize: 16.0), // Tamaño de letra más pequeño
                     ),
                   );
                 }).toList(),
@@ -398,15 +416,19 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: const Center(
-                      child: Text(
-                        'Registrarse',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16.0,
-                        ),
-                      ),
-                    ),
+                    child: _isRegistering
+                        ? CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          )
+                        : const Center(
+                            child: Text(
+                              'Registrarse',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16.0,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -416,9 +438,9 @@ class _RegisterPageState extends State<RegisterPage> {
                   Navigator.pushReplacement(
                     context,
                     PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(), // Cambio: Se cambia la clase a la que redirige
+                      pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(),
                       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        var begin = const Offset(-1.0, 0.0); // Cambio: Se cambia el inicio de la transición a la izquierda (-1.0)
+                        var begin = const Offset(-1.0, 0.0);
                         var end = Offset.zero;
                         var curve = Curves.easeInOut;
                         var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));

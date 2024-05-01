@@ -1,12 +1,12 @@
-import 'package:escuchamos_app/models/login_response.dart'; // Importa el modelo de respuesta de login
+import 'package:escuchamos_app/models/login_response.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'package:provider/provider.dart'; // Importa Provider para el manejo del estado
-import 'welcome_page.dart'; // Importa WelcomePage si está en otro archivo
-import 'register_page.dart'; // Importa RegisterPage si está en otro archivo
-import 'auth_provider.dart'; // Importa AuthProvider para el manejo de la autenticación
+import 'package:provider/provider.dart';
+import 'welcome_page.dart';
+import 'register_page.dart';
+import 'auth_provider.dart';
 import 'constants.dart';
 
 class LoginPage extends StatefulWidget {
@@ -19,10 +19,10 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  String _errorMessage = ''; // Mensaje de error para mostrar en caso de falla en el inicio de sesión
-  late Timer _timer; // Temporizador para mostrar el mensaje de error temporalmente
-  bool _isLoggingIn = false; // Bandera para controlar si se está realizando el inicio de sesión
-  bool _obscureText = true; // Controla la visibilidad de la contraseña en el campo de texto
+  String _errorMessage = '';
+  late Timer _timer;
+  bool _isLoggingIn = false;
+  bool _obscureText = true;
 
   @override
   void initState() {
@@ -44,7 +44,6 @@ class _LoginPageState extends State<LoginPage> {
       _isLoggingIn = true;
     });
 
-    // Validar que los campos de nombre de usuario y contraseña no estén vacíos
     if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
       setState(() {
         _errorMessage = 'Por favor complete todos los campos';
@@ -60,7 +59,6 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // Realizar la solicitud de inicio de sesión al servidor
     final response = await http.post(
       Uri.parse('${Constants.baseUrl}/login/'),
       headers: <String, String>{
@@ -72,14 +70,12 @@ class _LoginPageState extends State<LoginPage> {
       }),
     );
 
-    // Manejar la respuesta del servidor
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(utf8.decode(response.bodyBytes));
-      final loginResponse = LoginResponse.fromJson(jsonResponse); // Mapear la respuesta del servidor al modelo LoginResponse
-      final authProvider = Provider.of<AuthProvider>(context, listen: false); // Obtener el proveedor de autenticación
-      authProvider.setToken(loginResponse.token); // Establecer el token de autenticación
-      authProvider.setUserId(loginResponse.userId); // Establecer el ID de usuario
-      // Redirigir a la página de bienvenida una vez que se haya completado el inicio de sesión correctamente
+      final loginResponse = LoginResponse.fromJson(jsonResponse);
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      authProvider.setToken(loginResponse.token);
+      authProvider.setUserId(loginResponse.userId);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -87,7 +83,6 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } else if (response.statusCode == 400) {
-      // En caso de error de inicio de sesión, mostrar el mensaje de error proporcionado por el servidor
       final jsonResponse = json.decode(utf8.decode(response.bodyBytes));
       final detail = jsonResponse['detail'];
       setState(() {
@@ -143,7 +138,7 @@ class _LoginPageState extends State<LoginPage> {
                   borderSide: BorderSide(color: Constants.colorBlueapp),
                 ),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off),
+                  icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off, color: Constants.colorBlueapp) ,
                   onPressed: () {
                     setState(() {
                       _obscureText = !_obscureText;
@@ -160,7 +155,7 @@ class _LoginPageState extends State<LoginPage> {
                 gradient: Constants.gradientBlue,
               ),
               child: ElevatedButton(
-                onPressed: _login,
+                onPressed: _isLoggingIn ? null : _login,
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   shape: RoundedRectangleBorder(
@@ -168,13 +163,17 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   backgroundColor: Colors.transparent,
                 ),
-                child: const Text(
-                  'Iniciar sesión',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16.0,
-                  ),
-                ),
+                child: _isLoggingIn
+                    ? CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      )
+                    : const Text(
+                        'Iniciar sesión',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.0,
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 10),
