@@ -14,7 +14,7 @@ class Constants {
 
   // ---------------------------colores de la app ---------------------------//
 
-  static const Color colorBlueapp = Color.fromRGBO(9, 28, 170, 1); // Color azul que esta casi en todo la app
+  static const Color colorBlueapp = Color.fromRGBO(22, 45, 222, 1); // Color azul que esta casi en todo la app
   static const Color colorPurpleapp = Color.fromRGBO(74, 1, 125, 1); // Color morado
   static const Color colorRedapp = Color.fromRGBO(234, 22, 19, 1); // Color rojo
 
@@ -28,7 +28,7 @@ class Constants {
     begin: Alignment.topCenter, // Establece el punto de inicio en la parte superior
     end: Alignment.bottomCenter, // Establece el punto final en la parte inferior
     colors: [
-      Color.fromRGBO(22, 45, 222, 1),// Primer color
+      Color.fromRGBO(22, 45, 222, 1),// primer color
       Color.fromRGBO(74, 1, 125, 1), // Segundo color
     ],
   );
