@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../constants/constants.dart';
+import 'package:escuchamos_app/constants/constants.dart';
 import 'package:escuchamos_app/pages/medication/MedicationPage.dart';
 import 'package:escuchamos_app/pages/profile/ProfilePage.dart';
 import 'package:escuchamos_app/pages/explore/ExplorePage.dart';

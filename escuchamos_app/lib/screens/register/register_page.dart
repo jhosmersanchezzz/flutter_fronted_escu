@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import '../../constants/constants.dart';
-import '../login/login_page.dart'; // Importa RegisterPage si está en otro archivo
-import '../verification/verification_page.dart'; 
-import '../../models/country_model.dart'; // Importa el modelo de país
+import 'package:escuchamos_app/constants/constants.dart';
+import 'package:escuchamos_app/screens/login/login_page.dart'; // Importa RegisterPage si está en otro archivo
+import 'package:escuchamos_app/screens/verification/verification_page.dart'; 
+import 'package:escuchamos_app/models/country_model.dart'; // Importa el modelo de país
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
