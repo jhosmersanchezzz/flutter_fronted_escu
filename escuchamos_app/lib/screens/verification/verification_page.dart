@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'constants.dart';
-import 'login_page.dart';
+import '../../constants/constants.dart';
+import '../login/login_page.dart';
 
 class VerificationPage extends StatefulWidget {
   final String userEmail;

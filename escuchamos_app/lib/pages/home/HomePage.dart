@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:provider/provider.dart'; // Importa Provider
 import 'package:http/http.dart' as http; // Importa http para hacer solicitudes HTTP
-import 'package:escuchamos_app/auth_provider.dart'; // Importa AuthProvider
-import 'package:escuchamos_app/constants.dart';
+import 'package:escuchamos_app/providers/auth_provider.dart'; // Importa AuthProvider
+import 'package:escuchamos_app/constants/constants.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

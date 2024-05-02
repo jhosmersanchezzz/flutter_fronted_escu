@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:escuchamos_app/auth_provider.dart';
-import 'package:escuchamos_app/constants.dart';
+import 'package:escuchamos_app/providers/auth_provider.dart';
+import 'package:escuchamos_app/constants/constants.dart';
 
 class UpdateDataView extends StatefulWidget {
   const UpdateDataView({super.key});

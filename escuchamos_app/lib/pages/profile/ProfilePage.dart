@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
-import 'package:escuchamos_app/auth_provider.dart';
-import 'package:escuchamos_app/pages/profile_views/update_data_view.dart';
-import 'package:escuchamos_app/pages/profile_views/change_password_view.dart';
-import 'package:escuchamos_app/login_page.dart';
-import 'package:escuchamos_app/constants.dart';
+import 'package:escuchamos_app/providers/auth_provider.dart';
+import 'package:escuchamos_app/pages/profile/profile_views/update_data_view.dart';
+import 'package:escuchamos_app/pages/profile/profile_views/change_password_view.dart';
+import 'package:escuchamos_app/screens/login/login_page.dart';
+import 'package:escuchamos_app/constants/constants.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key});

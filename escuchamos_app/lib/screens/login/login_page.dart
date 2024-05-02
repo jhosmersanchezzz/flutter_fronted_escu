@@ -4,10 +4,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:provider/provider.dart';
-import 'welcome_page.dart';
-import 'register_page.dart';
-import 'auth_provider.dart';
-import 'constants.dart';
+import '../welcome/welcome_page.dart';
+import '../register/register_page.dart';
+import '../../providers/auth_provider.dart';
+import '../../constants/constants.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);

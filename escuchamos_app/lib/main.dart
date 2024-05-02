@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'auth_provider.dart'; // Importa AuthProvider si está en otro archivo
-import 'login_page.dart'; // Importa la pantalla de carga
+import 'providers/auth_provider.dart'; // Importa AuthProvider si está en otro archivo
+import 'screens/login/login_page.dart'; // Importa la pantalla de carga
 
 void main() {
   runApp(MyApp());

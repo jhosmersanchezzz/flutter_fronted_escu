@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'constants.dart';
-import 'package:escuchamos_app/pages/MedicationPage.dart';
-import 'package:escuchamos_app/pages/ProfilePage.dart';
-import 'package:escuchamos_app/pages/ExplorePage.dart';
-import 'package:escuchamos_app/pages/HomePage.dart';
-import 'package:escuchamos_app/pages/NotificationsPage.dart';
+import '../../constants/constants.dart';
+import 'package:escuchamos_app/pages/medication/MedicationPage.dart';
+import 'package:escuchamos_app/pages/profile/ProfilePage.dart';
+import 'package:escuchamos_app/pages/explore/ExplorePage.dart';
+import 'package:escuchamos_app/pages/home/HomePage.dart';
+import 'package:escuchamos_app/pages/notifications/NotificationsPage.dart';
 
 class WelcomePage extends StatefulWidget {
   const WelcomePage({super.key});
