@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'constants.dart';
 import 'login_page.dart'; // Importa RegisterPage si está en otro archivo
+import 'verification_page.dart'; 
 import 'models/country_model.dart'; // Importa el modelo de país
 
 class RegisterPage extends StatefulWidget {
@@ -144,66 +145,88 @@ class _RegisterPageState extends State<RegisterPage> {
         'country_id': _selectedCountry?.id,
       }),
     );
+if (response.statusCode == 200) {
+  final responseData = json.decode(utf8.decode(response.bodyBytes));
+  final message = responseData['message'];
 
-    if (response.statusCode == 201) {
-      final responseData = json.decode(response.body);
-      final message = responseData['message'];
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        backgroundColor: Constants.colorBlueclaroapp, // Color de fondo verde claro para alerta de éxito
+        content: Row(
+          children: [
+            Icon(Icons.check_circle, color: Constants.colorBlueapp),
+            SizedBox(width: 8),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => VerificationPage(userEmail: emailController.text),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    var begin = const Offset(-1.0, 0.0);
+                    var end = Offset.zero;
+                    var curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                ),
+              );
+            },
+            child: const Text('Verificar correo', style: TextStyle(color: Constants.colorBlueapp)),
+          ),
+        ],
+      );
+    },
+  );
+} else if (response.statusCode == 400) { 
+    final responseData = json.decode(utf8.decode(response.bodyBytes));
+    String errorMessage = 'ERROR'; // Mensaje predeterminado si no se encuentra ningún mensaje de error específico
 
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Text(message),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) => const LoginPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        var begin = const Offset(-1.0, 0.0);
-                        var end = Offset.zero;
-                        var curve = Curves.easeInOut;
-                        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                        var offsetAnimation = animation.drive(tween);
-                        return SlideTransition(
-                          position: offsetAnimation,
-                          child: child,
-                        );
-                      },
-                    ),
-                  );
-                },
-                child: const Text('Cerrar'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      final responseData = json.decode(utf8.decode(response.bodyBytes));
-      final errorMessage = responseData.values.join('\n');
-      showDialog(
-        // ignore: use_build_context_synchronously
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            content: Text(errorMessage),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text('Cerrar'),
-              ),
-            ],
-          );
-        },
-      );
+    // Verifica si hay errores de username, email o phone_number y actualiza el mensaje de error
+    if (responseData.containsKey('username')) {
+      errorMessage = responseData['username'][0];
+    } else if (responseData.containsKey('email')) {
+      errorMessage = responseData['email'][0];
+    } else if (responseData.containsKey('phone_number')) {
+      errorMessage = responseData['phone_number'][0];
     }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Constants.colorRedclaroapp, // Color de fondo rojo claro para alerta de error
+          content: Row(
+            children: [
+              Icon(Icons.error, color: Constants.colorRedapp),
+              SizedBox(width: 8),
+              Expanded(child: Text(errorMessage)),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cerrar', style: TextStyle(color: Constants.colorRedapp)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
     setState(() {
       _isRegistering = false;
@@ -334,6 +357,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   errorText: _countryError,
                 ),
+                dropdownColor: Colors.white, // Establece el color de fondo de la lista desplegable como blanco
                 items: _countries.map<DropdownMenuItem<Country>>((Country country) {
                   return DropdownMenuItem<Country>(
                     value: country,
@@ -344,6 +368,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   );
                 }).toList(),
               ),
+
               const SizedBox(height: 10),
               TextFormField(
                 controller: emailController,

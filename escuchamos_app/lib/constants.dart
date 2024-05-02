@@ -18,8 +18,10 @@ class Constants {
   // ---------------------------colores de la app ---------------------------//
 
   static const Color colorBlueapp = Color.fromRGBO(22, 45, 222, 1); // Color azul que esta casi en todo la app
+  static const Color colorBlueclaroapp = Color.fromRGBO(226, 227, 248, 1); // Color azul claro en las notificaciones de la app
   static const Color colorPurpleapp = Color.fromRGBO(74, 1, 125, 1); // Color morado
   static const Color colorRedapp = Color.fromRGBO(234, 22, 19, 1); // Color rojo
+  static const Color colorRedclaroapp = Color.fromRGBO(255, 225, 224, 1); // Color rojo claro en las notificaciones de error de la app 
 
   // -------------------------------------------------------------------------//
 

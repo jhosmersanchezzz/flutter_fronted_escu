@@ -88,6 +88,7 @@ class _UpdateDataViewState extends State<UpdateDataView> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
+                backgroundColor: Constants.colorBlueclaroapp,
                 title: const Text('¡Datos actualizados correctamente!'),
                 content: const Icon(Icons.check_circle, color: Constants.colorBlueapp, size: 50),
                 actions: <Widget>[
@@ -108,6 +109,7 @@ class _UpdateDataViewState extends State<UpdateDataView> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
+                backgroundColor: Constants.colorRedclaroapp, // Color de fondo rojo claro para alerta de error
                 title: const Text('Error al actualizar los datos'),
                 content: const Icon(Icons.error, color: Constants.colorRedapp, size: 50),
                 actions: <Widget>[
