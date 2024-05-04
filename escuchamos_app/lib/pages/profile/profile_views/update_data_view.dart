@@ -148,12 +148,14 @@ class _UpdateDataViewState extends State<UpdateDataView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: AnimatedOpacity(
           duration: const Duration(milliseconds: 300),
           opacity: _isAppBarVisible ? 1.0 : 0.0,
           child: AppBar(
+            backgroundColor: Colors.white,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Constants.colorBlueapp),
               onPressed: () {

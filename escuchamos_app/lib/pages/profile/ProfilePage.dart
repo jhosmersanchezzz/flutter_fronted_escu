@@ -70,6 +70,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: RefreshIndicator(
         onRefresh: _fetchUserData,
         child: Stack(
@@ -164,6 +165,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           showDialog(
                             context: context,
                             builder: (context) => AlertDialog(
+                              backgroundColor: Colors.white,
                               title: const Text(
                                 'Cerrar sesión',
                                 style: TextStyle(

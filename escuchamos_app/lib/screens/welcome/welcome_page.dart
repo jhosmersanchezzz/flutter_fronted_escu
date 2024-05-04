@@ -50,6 +50,7 @@ class _WelcomePageState extends State<WelcomePage> {
             duration: const Duration(milliseconds: 300),
             opacity: _isAppBarVisible ? 1.0 : 0.0,
             child: AppBar(
+              backgroundColor: Colors.white, // Establece el color de fondo de la AppBar como blanco
               leading: IconButton(
                 icon: const Icon(
                   Icons.person,
