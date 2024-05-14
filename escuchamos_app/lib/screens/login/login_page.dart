@@ -1,9 +1,10 @@
-import 'package:escuchamos_app/models/login_response.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
 import 'package:provider/provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:escuchamos_app/models/login_response.dart';
 import 'package:escuchamos_app/screens/welcome/welcome_page.dart';
 import 'package:escuchamos_app/screens/register/register_page.dart';
 import 'package:escuchamos_app/providers/auth_provider.dart';
@@ -36,7 +37,9 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _login() async {
+  Future<void> _login(BuildContext context) async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     if (_isLoggingIn) {
       return;
     }
@@ -73,9 +76,17 @@ class _LoginPageState extends State<LoginPage> {
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(utf8.decode(response.bodyBytes));
       final loginResponse = LoginResponse.fromJson(jsonResponse);
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       authProvider.setToken(loginResponse.token);
       authProvider.setUserId(loginResponse.userId);
+
+      // Guardar el token en el almacenamiento seguro
+    final storage = FlutterSecureStorage();
+    await storage.write(key: 'token', value: loginResponse.token);
+    await storage.write(key: 'userId', value: loginResponse.userId.toString());
+
+
+
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -99,120 +110,128 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            Image.asset(
-              'assets/logo.png',
-              height: 130,
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.white,
+    body: SingleChildScrollView(
+      padding: EdgeInsets.symmetric(horizontal: 24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          SizedBox(height: 100),
+          Image.asset(
+            'assets/logo.png',
+            height: 130,
+          ),
+          SizedBox(height: 40),
+          TextField(
+            controller: _usernameController,
+            decoration: InputDecoration(
+              hintText: 'Nombre de usuario',
+              hintStyle: TextStyle(color: Colors.grey),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Constants.colorBlueapp),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
             ),
-            const SizedBox(height: 20.0),
-            TextField(
-              controller: _usernameController,
-              decoration: const InputDecoration(
-                hintText: 'Nombre de usuario',
-                hintStyle: TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp),
+            style: TextStyle(fontSize: 16.0),
+          ),
+          SizedBox(height: 20),
+          TextField(
+            controller: _passwordController,
+            obscureText: _obscureText,
+            decoration: InputDecoration(
+              hintText: 'Contraseña',
+              hintStyle: TextStyle(color: Colors.grey),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Constants.colorBlueapp),
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off, color: Constants.colorBlueapp),
+                onPressed: () {
+                  setState(() {
+                    _obscureText = !_obscureText;
+                  });
+                },
+              ),
+            ),
+            style: TextStyle(fontSize: 16.0),
+          ),
+          SizedBox(height: 24),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.0),
+              gradient: Constants.gradientBlue,
+            ),
+            child: ElevatedButton(
+              onPressed: _isLoggingIn ? null : () => _login(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent, // Hace que el color de fondo del botón sea transparente para mostrar el degradado del contenedor
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              style: const TextStyle(fontSize: 16.0),
+              child: _isLoggingIn
+                  ? CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    )
+                  : Text(
+                      'Iniciar sesión',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16.0,
+                      ),
+                    ),
             ),
-            const SizedBox(height: 16.0),
-            TextField(
-              controller: _passwordController,
-              obscureText: _obscureText,
-              decoration: InputDecoration(
-                hintText: 'Contraseña',
-                hintStyle: const TextStyle(color: Colors.grey),
-                border: const OutlineInputBorder(),
-                focusedBorder: const OutlineInputBorder(
-                  borderSide: BorderSide(color: Constants.colorBlueapp),
-                ),
-                suffixIcon: IconButton(
-                  icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off, color: Constants.colorBlueapp) ,
-                  onPressed: () {
-                    setState(() {
-                      _obscureText = !_obscureText;
-                    });
+          ),
+          SizedBox(height: 16),
+          Text(
+            _errorMessage,
+            style: TextStyle(color: Constants.colorRedapp),
+          ),
+          SizedBox(height: 16),
+          TextButton(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => const RegisterPage(),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    var begin = Offset(1.0, 0.0);
+                    var end = Offset.zero;
+                    var curve = Curves.easeInOut;
+                    var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
                   },
                 ),
-              ),
-              style: const TextStyle(fontSize: 16.0),
-            ),
-            const SizedBox(height: 24.0),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8.0),
-                gradient: Constants.gradientBlue,
-              ),
-              child: ElevatedButton(
-                onPressed: _isLoggingIn ? null : _login,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  backgroundColor: Colors.transparent,
-                ),
-                child: _isLoggingIn
-                    ? CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      )
-                    : const Text(
-                        'Iniciar sesión',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16.0,
-                        ),
-                      ),
+              );
+            },
+            child: Text(
+              '¿No tienes una cuenta? Regístrate',
+              style: TextStyle(
+                fontSize: 14.0,
+                color: Constants.colorBlueapp,
               ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              _errorMessage,
-              style: const TextStyle(color: Constants.colorRedapp),
-            ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => const RegisterPage(),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      var begin = const Offset(1.0, 0.0);
-                      var end = Offset.zero;
-                      var curve = Curves.easeInOut;
-                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                      var offsetAnimation = animation.drive(tween);
-                      return SlideTransition(
-                        position: offsetAnimation,
-                        child: child,
-                      );
-                    },
-                  ),
-                );
-              },
-              child: const Text(
-                '¿No tienes una cuenta? Regístrate',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: Constants.colorBlueapp,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
+}
+

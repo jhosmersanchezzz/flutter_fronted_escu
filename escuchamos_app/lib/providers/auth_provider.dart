@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 
 class AuthProvider extends ChangeNotifier {
-  late String _token; // Variable para almacenar el token
-  late int _userId; // Variable para almacenar el ID del usuario
-  late String _username; // Variable para almacenar el nombre de usuario
+  late String _token;
+  late int _userId;
+  late String _username;
+
+  AuthProvider() {
+    _token = '';
+    _userId = 0;
+    _username = '';
+  }
 
   String get token => _token;
   int get userId => _userId;

@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
-import 'package:escuchamos_app/providers/auth_provider.dart';
 import 'package:escuchamos_app/constants/constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UpdateDataView extends StatefulWidget {
-  const UpdateDataView({super.key});
+  const UpdateDataView({Key? key});
 
   @override
   _UpdateDataViewState createState() => _UpdateDataViewState();
@@ -20,7 +19,6 @@ class _UpdateDataViewState extends State<UpdateDataView> {
   late TextEditingController _addressController;
   late TextEditingController _phoneNumberController;
 
-  final bool _isAppBarVisible = true;
 
   @override
   void initState() {
@@ -33,26 +31,33 @@ class _UpdateDataViewState extends State<UpdateDataView> {
   }
 
   Future<void> _fetchUserData() async {
-  try {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final response = await http.get(
-      Uri.parse('${Constants.baseUrl}/user/${authProvider.userId}'),
-      headers: {'Authorization': 'Token ${authProvider.token}'},
-    );
-    if (response.statusCode == 200) {
-      final String responseBody = utf8.decode(response.bodyBytes);
-      final Map<String, dynamic> userData = json.decode(responseBody);
-      _usernameController.text = userData['username'];
-      _emailController.text = userData['email'];
-      _addressController.text = userData['address'];
-      _phoneNumberController.text = userData['phone_number'];
+    final storage = FlutterSecureStorage();
+    final token = await storage.read(key: 'token');
+    if (token != null && token.isNotEmpty) {
+      try {
+        final userId = await storage.read(key: 'userId');
+        final response = await http.get(
+          Uri.parse('${Constants.baseUrl}/user/$userId'),
+          headers: {'Authorization': 'Token $token'},
+        );
+        if (response.statusCode == 200) {
+          final String responseBody = utf8.decode(response.bodyBytes);
+          final Map<String, dynamic> userData = json.decode(responseBody);
+          _usernameController.text = userData['username'];
+          _emailController.text = userData['email'];
+          _addressController.text = userData['address'];
+          _phoneNumberController.text = userData['phone_number'];
+        } else {
+          throw Exception('Failed to load user data');
+        }
+      } catch (error) {
+        print('Error fetching user data: $error');
+      }
     } else {
-      throw Exception('Failed to load user data');
+      // Token not available, handle accordingly
+      print('Token not available');
     }
-  } catch (error) {
-    print('Error fetching user data: $error');
   }
-}
 
   Future<void> _updateUserData() async {
     if (_formKey.currentState!.validate()) {
@@ -63,197 +68,200 @@ class _UpdateDataViewState extends State<UpdateDataView> {
         "phone_number": _phoneNumberController.text,
       };
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'token');
+      final userId = await storage.read(key: 'userId');
+
       final response = await http.put(
-        Uri.parse('${Constants.baseUrl}/user/update/${authProvider.userId}'),
+        Uri.parse('${Constants.baseUrl}/user/update/$userId'),
         headers: {
-          'Authorization': 'Token ${authProvider.token}',
+          'Authorization': 'Token $token',
           'Content-Type': 'application/json',
         },
         body: json.encode(userData),
       );
 
-            if (response.statusCode == 200) {
-              _showSuccessDialog();
-            } else {
-              _showErrorDialog();
-            }
-          } else {
-            _showIncompleteFieldsDialog();
-          }
-        }
+      if (response.statusCode == 200) {
+        _showSuccessDialog();
+      } else {
+        _showErrorDialog();
+      }
+    } else {
+      _showIncompleteFieldsDialog();
+    }
+  }
 
-        void _showSuccessDialog() {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                backgroundColor: Constants.colorBlueclaroapp,
-                title: const Text('¡Datos actualizados correctamente!'),
-                content: const Icon(Icons.check_circle, color: Constants.colorBlueapp, size: 50),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Aceptar'),
-                  ),
-                ],
-              );
-            },
-          );
-        }
-
-        void _showErrorDialog() {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                backgroundColor: Constants.colorRedclaroapp, // Color de fondo rojo claro para alerta de error
-                title: const Text('Error al actualizar los datos'),
-                content: const Icon(Icons.error, color: Constants.colorRedapp, size: 50),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Aceptar'),
-                  ),
-                ],
-              );
-            },
-          );
-        }
-
-        void _showIncompleteFieldsDialog() {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Por favor completa todos los campos obligatorios'),
-                content: const Icon(Icons.warning, color: Colors.orange, size: 50),
-                actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Aceptar'),
-                  ),
-                ],
-              );
-            },
-          );
-        }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: AnimatedOpacity(
-          duration: const Duration(milliseconds: 300),
-          opacity: _isAppBarVisible ? 1.0 : 0.0,
-          child: AppBar(
-            backgroundColor: Colors.white,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Constants.colorBlueapp),
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Constants.colorBlueclaroapp,
+          title: const Text('¡Datos actualizados correctamente!'),
+          content: const Icon(Icons.check_circle, color: Constants.colorBlueapp, size: 50),
+          actions: <Widget>[
+            TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              child: const Text('Aceptar'),
             ),
-            title: Center(
-              child: SizedBox(
-                height: kToolbarHeight,
-                child: Image.asset('assets/logo_banner.png'),
-              ),
-            ),
-            centerTitle: true,
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _usernameController,
-                decoration: const InputDecoration(
-                  hintText: 'Nombre de usuario',
-                  hintStyle: TextStyle(color: Colors.grey),
-                  labelText: 'Nombre de usuario',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Constants.colorBlueapp),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese un nombre de usuario';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  hintText: 'Correo electrónico',
-                  hintStyle: TextStyle(color: Colors.grey),
-                  labelText: 'Correo electrónico',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Constants.colorBlueapp),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingrese un correo electrónico';
-                  }
-                  // Puedes agregar validaciones adicionales de correo electrónico aquí
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _addressController,
-                decoration: const InputDecoration(
-                hintText: 'Dirección',
-                hintStyle: TextStyle(color: Colors.grey),
-                  labelText: 'Dirección',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Constants.colorBlueapp),
-                  ),
-                ),
-                validator: (value) {
-                  // Puedes agregar validaciones adicionales de dirección aquí
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _phoneNumberController,
-                decoration: const InputDecoration(
-                hintText: 'Número telefónico',
-                hintStyle: TextStyle(color: Colors.grey),
-                  labelText: 'Número telefónico',
-                  border: OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Constants.colorBlueapp),
-                  ),
-                ),
-                validator: (value) {
-                  // Puedes agregar validaciones adicionales de número telefónico aquí
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
+          ],
+        );
+      },
+    );
+  }
 
-Container(
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Constants.colorRedclaroapp,
+          title: const Text('Error al actualizar los datos'),
+          content: const Icon(Icons.error, color: Constants.colorRedapp, size: 50),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showIncompleteFieldsDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Por favor completa todos los campos obligatorios'),
+          content: const Icon(Icons.warning, color: Colors.orange, size: 50),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.white,
+    appBar: PreferredSize(
+      preferredSize: const Size.fromHeight(kToolbarHeight),
+      child: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0, // Remueve la sombra del appbar
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Constants.colorBlueapp),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        title: Center(
+          child: Image.asset('assets/logo_banner.png', height: kToolbarHeight), // Ajusta la altura del logo al del appbar
+        ),
+        centerTitle: true,
+      ),
+    ),
+    body: SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextFormField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                hintText: 'Nombre de usuario',
+                labelText: 'Nombre de usuario',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Constants.colorBlueapp),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor ingrese un nombre de usuario';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _emailController,
+              decoration: InputDecoration(
+                hintText: 'Correo electrónico',
+                labelText: 'Correo electrónico',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Constants.colorBlueapp),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Por favor ingrese un correo electrónico';
+                }
+                // Puedes agregar validaciones adicionales de correo electrónico aquí
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _addressController,
+              decoration: InputDecoration(
+                hintText: 'Dirección',
+                labelText: 'Dirección',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Constants.colorBlueapp),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              validator: (value) {
+                // Puedes agregar validaciones adicionales de dirección aquí
+                return null;
+              },
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _phoneNumberController,
+              decoration: InputDecoration(
+                hintText: 'Número telefónico',
+                labelText: 'Número telefónico',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Constants.colorBlueapp),
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+              ),
+              validator: (value) {
+                // Puedes agregar validaciones adicionales de número telefónico aquí
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+            Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8.0),
                 gradient: Constants.gradientBlue,
@@ -277,15 +285,13 @@ Container(
                 ),
               ),
             ),
-
-
-
-            ],
-          ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 
   @override
   void dispose() {

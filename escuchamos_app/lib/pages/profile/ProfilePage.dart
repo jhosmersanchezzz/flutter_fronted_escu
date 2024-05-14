@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:provider/provider.dart';
-import 'package:escuchamos_app/providers/auth_provider.dart';
 import 'package:escuchamos_app/pages/profile/profile_views/update_data_view.dart';
 import 'package:escuchamos_app/pages/profile/profile_views/change_password_view.dart';
 import 'package:escuchamos_app/screens/login/login_page.dart';
 import 'package:escuchamos_app/constants/constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({Key? key});
@@ -17,19 +16,31 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic> userData = {};
+  late String token;
+  late String userId;
 
   @override
   void initState() {
     super.initState();
-    _fetchUserData();
+    _getSecureData();
+  }
+
+  Future<void> _getSecureData() async {
+    final storage = FlutterSecureStorage();
+    token = await storage.read(key: 'token') ?? '';
+    userId = await storage.read(key: 'userId') ?? '';
+    if (token.isNotEmpty && userId.isNotEmpty) {
+      _fetchUserData();
+    } else {
+      // Hacer algo si el token o userId están vacíos, como redirigir al usuario a iniciar sesión.
+    }
   }
 
   Future<void> _fetchUserData() async {
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final response = await http.get(
-        Uri.parse('${Constants.baseUrl}/user/${authProvider.userId}'),
-        headers: {'Authorization': 'Token ${authProvider.token}'},
+        Uri.parse('${Constants.baseUrl}/user/$userId'),
+        headers: {'Authorization': 'Token $token'},
       );
       if (response.statusCode == 200) {
         final String responseBody = utf8.decode(response.bodyBytes);
@@ -47,20 +58,32 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _logout() async {
     try {
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final response = await http.post(
-        Uri.parse('${Constants.baseUrl}/logout/'),
-        headers: {'Authorization': 'Token ${authProvider.token}'},
-      );
-      if (response.statusCode == 200) {
-        // Eliminar todas las rutas anteriores y reemplazar con la página de inicio de sesión
-        Navigator.of(context).popUntil((route) => route.isFirst);
+      final storage = FlutterSecureStorage();
+      final token = await storage.read(key: 'token');
+      if (token != null && token.isNotEmpty) {
+        final response = await http.post(
+          Uri.parse('${Constants.baseUrl}/logout/'),
+          headers: {'Authorization': 'Token $token'},
+        );
+        if (response.statusCode == 200) {
+          // Elimina el token y el userId de FlutterSecureStorage
+          await storage.delete(key: 'token');
+          await storage.delete(key: 'userId');
+          // Eliminar todas las rutas anteriores y reemplazar con la página de inicio de sesión
+          Navigator.of(context).popUntil((route) => route.isFirst);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginPage()),
+          );
+        } else {
+          throw Exception('Failed to logout: ${response.statusCode}');
+        }
+      } else {
+        // Si el token no está disponible, simplemente navega a la página de inicio de sesión
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => LoginPage()),
         );
-      } else {
-        throw Exception('Failed to logout: ${response.statusCode}');
       }
     } catch (error) {
       print('Error logging out: $error');
